@@ -1,0 +1,693 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Smart Hostel | Room Allocation</title>
+<style>
+:root{--bg:#0b1220;--p:#131f32;--p2:#192941;--line:#2a3b54;--text:#edf4ff;--muted:#91a4bf;--teal:#42dfc0;--blue:#7eafff;--orange:#ffc16d;--red:#ff8795;--green:#83e3a9}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 10% 0%,#1b3153,transparent 38%),var(--bg);color:var(--text);font:14px "Segoe UI",Arial,sans-serif}
+button,input,select{font:inherit}
+button{border:0;border-radius:9px;padding:10px 13px;background:var(--teal);color:#07151c;font-weight:750;cursor:pointer}
+button:hover{filter:brightness(1.08)}
+button.secondary{background:#263750;color:var(--text);border:1px solid #3b506c}
+button.danger{background:#4a2935;color:#ffb5bf}
+.app{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
+.side{padding:23px 14px;background:#09111edb;border-right:1px solid var(--line);position:sticky;top:0;height:100vh}
+.brand{display:flex;gap:10px;align-items:center;padding:0 8px 25px}
+.logo{width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:linear-gradient(135deg,var(--teal),var(--blue));color:#07131c;font-size:19px;font-weight:900}
+.brand b{display:block;font-size:17px}
+.brand small{color:var(--muted);font-size:10px}
+.navlabel{font-size:10px;letter-spacing:1.5px;color:#71849f;padding:8px}
+.nav button{display:flex;width:100%;text-align:left;gap:12px;margin:4px 0;background:transparent;color:#a4b6cf;font-weight:600}
+.nav button.active,.nav button:hover{background:#1c3048;color:var(--teal)}
+.side-note{position:absolute;bottom:17px;left:14px;right:14px;padding:12px;background:#122238;border:1px solid var(--line);border-radius:12px;font-size:11px;line-height:1.6;color:var(--muted)}
+.side-note b{color:var(--teal)}
+main{padding:27px clamp(14px,3vw,38px);max-width:1550px;width:100%;margin:auto}
+.top{display:flex;justify-content:space-between;gap:15px;align-items:center;margin-bottom:24px}
+.eyebrow{font-size:10px;letter-spacing:1.7px;color:var(--teal);font-weight:800}
+.top h1{font-size:clamp(25px,3vw,34px);margin:6px 0}
+.muted{color:var(--muted);font-size:12px}
+.topright{display:flex;gap:9px;align-items:center}
+.online{font-size:10px;color:var(--green);border:1px solid #285b4c;background:#102e28;padding:8px 10px;border-radius:20px;white-space:nowrap}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:17px}
+.stat,.panel{background:linear-gradient(145deg,#16243a,#101a2b);border:1px solid var(--line);border-radius:16px}
+.stat{padding:17px}
+.stat label{font-size:12px;color:var(--muted)}
+.stat strong{display:block;font-size:29px;margin:11px 0 4px}
+.stat small{color:var(--muted);font-size:10px}
+.layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(260px,.8fr);gap:16px}
+.panel{padding:18px;margin-bottom:16px;min-width:0}
+.phead{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:15px}
+.phead h2{font-size:16px;margin:0}
+.phead small{display:block;color:var(--muted);font-size:11px;margin-top:5px}
+.pill{font-size:10px;padding:5px 8px;border-radius:20px;background:#1b3940;color:var(--teal);white-space:nowrap}
+.pill.red{background:#432630;color:#ffabb5}
+.pill.orange{background:#3c3020;color:var(--orange)}
+.pill.green{background:#19392e;color:var(--green)}
+.bar{height:8px;background:#2a394f;border-radius:8px;overflow:hidden;margin:12px 0 8px}
+.bar span{display:block;height:100%;background:linear-gradient(90deg,var(--teal),var(--blue))}
+.barlabels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+.rooms{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.room{padding:12px;border:1px solid #2d405a;background:#111e30;border-radius:12px}
+.roomtop{display:flex;justify-content:space-between;gap:7px}
+.roomname{font-weight:800}
+.roomtype{color:var(--muted);font-size:10px;margin-top:4px}
+.beds{display:flex;gap:4px;margin:14px 0 10px}
+.bed{height:20px;flex:1;min-width:8px;background:#293a51;border-radius:4px}
+.bed.full{background:#238578;border:1px solid #38bca9}
+.roomfoot{display:flex;justify-content:space-between;color:var(--muted);font-size:10px}
+.roombuttons{display:flex;gap:6px;margin-top:10px}
+.small{padding:7px 9px;font-size:11px}
+.tablewrap{overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:540px}
+th{text-align:left;color:#8196b3;font-size:10px;text-transform:uppercase;letter-spacing:.7px;padding:10px 8px;border-bottom:1px solid var(--line)}
+td{padding:12px 8px;border-bottom:1px solid #24334a;font-size:12px}
+tr:last-child td{border-bottom:0}
+.person{display:flex;align-items:center;gap:8px}
+.avatar{width:31px;height:31px;display:grid;place-items:center;border-radius:9px;background:#213b55;color:var(--teal);font-weight:800;font-size:10px}
+.person b{display:block}
+.person small{display:block;color:var(--muted);font-size:10px;margin-top:3px}
+.status{font-size:10px;padding:5px 7px;border-radius:7px;background:#19392e;color:var(--green)}
+.status.Waiting{background:#3d3020;color:var(--orange)}
+.status.Unallocated{background:#422630;color:#ff9eac}
+.quick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.quick button{background:#1d2e45;color:var(--text);border:1px solid #344861;text-align:left}
+.quick span{display:block;font-size:19px;margin-bottom:7px}
+.activity{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #25354b}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--teal);margin-top:5px;flex-shrink:0}
+.activity b{font-size:11px}
+.activity small{display:block;color:var(--muted);font-size:10px;margin-top:4px}
+.view{display:none}
+.view.active{display:block}
+.notice{padding:12px 14px;border:1px solid #2a4b5c;background:#172d3d;color:#b9dce7;border-radius:10px;font-size:11px;line-height:1.6;margin-bottom:16px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.toolbar input,.toolbar select,.field input,.field select{padding:10px 11px;border:1px solid #344962;background:#0d1828;color:var(--text);border-radius:9px;min-width:0}
+.toolbar input{flex:1;min-width:180px}
+.formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.field{display:flex;flex-direction:column;gap:7px}
+.field label{font-size:11px;color:#a8bad1;font-weight:700}
+.field input,.field select{width:100%}
+.formactions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.empty{text-align:center;padding:24px;color:var(--muted);font-size:12px}
+.meter{height:6px;background:#293a51;border-radius:8px;overflow:hidden;margin-top:6px}
+.meter span{display:block;height:100%;background:var(--teal)}
+.toast{position:fixed;bottom:20px;right:20px;background:#183640;border:1px solid #36776c;color:#e4fff7;padding:13px 16px;border-radius:11px;opacity:0;transform:translateY(8px);transition:.2s;z-index:20;pointer-events:none;max-width:90vw}
+.toast.show{opacity:1;transform:none}
+.modalback{display:none;position:fixed;inset:0;background:#030812c9;z-index:10;align-items:center;justify-content:center;padding:15px}
+.modalback.show{display:flex}
+.modal{width:min(530px,100%);max-height:90vh;overflow:auto;background:#132036;border:1px solid #3a4e68;border-radius:16px;padding:20px}
+.modalhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:17px}
+.modalhead h2{font-size:18px;margin:0}
+.foot{text-align:center;color:#657a98;font-size:10px;margin:18px 0;line-height:1.6}
+@media(max-width:1050px){.app{grid-template-columns:70px 1fr}.side{padding:18px 8px}.brand{padding:0 5px 22px}.brandtext,.navlabel,.navtext,.side-note{display:none}.nav button{justify-content:center;padding:13px 5px}.stats{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}}
+@media(max-width:650px){.app{display:block}.side{height:auto;position:relative;padding:10px;border:0;border-bottom:1px solid var(--line)}.brand{padding:0 5px 9px}.brandtext{display:block}.nav{display:flex;overflow:auto}.nav button{min-width:43px;margin:0}.navtext{display:none}.top{align-items:flex-start}.online{display:none}main{padding:18px 11px}.panel{padding:13px}.rooms{grid-template-columns:repeat(2,minmax(0,1fr))}.formgrid{grid-template-columns:1fr}.stat{padding:12px}.stat strong{font-size:24px}.top h1{font-size:25px}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side">
+<div class="brand"><div class="logo">SH</div><div class="brandtext"><b>Smart Hostel</b><small>ROOM ALLOCATION SYSTEM</small></div></div>
+<div class="navlabel">WORKSPACE</div>
+<nav class="nav" id="nav">
+<button class="active" data-view="dashboard">▦ <span class="navtext">Dashboard</span></button>
+<button data-view="students">♙ <span class="navtext">Students</span></button>
+<button data-view="rooms">▤ <span class="navtext">Rooms</span></button>
+<button data-view="allocation">⇄ <span class="navtext">Allocation</span></button>
+<button data-view="waiting">◷ <span class="navtext">Waiting List</span></button>
+<button data-view="reports">↶ <span class="navtext">History & Reports</span></button>
+</nav>
+<div class="side-note"><b>● DEMO MODE</b><br>Academic project simulation. Records are stored locally in this browser.</div>
+</aside>
+<main>
+<header class="top">
+<div><div class="eyebrow">HOSTEL OPERATIONS / OVERVIEW</div><h1 id="title">Dashboard overview</h1><div class="muted" id="subtitle">A clearer view of occupancy, allocation and student housing.</div></div>
+<div class="topright"><span class="online">● SYSTEM ONLINE</span><button onclick="openStudent()">＋ Add student</button></div>
+</header>
+
+<section class="view active" id="v-dashboard">
+<div class="notice">Welcome to Smart Hostel. Register students, manage room capacity, and use automatic allocation to place eligible students. Sample records are included so you can demonstrate the application.</div>
+<div class="stats">
+<div class="stat"><label>Registered students</label><strong id="nStudents">0</strong><small>All student records</small></div>
+<div class="stat"><label>Total bed capacity</label><strong id="nBeds">0</strong><small id="nRooms">Across 0 rooms</small></div>
+<div class="stat"><label>Occupied beds</label><strong id="nOccupied">0</strong><small id="nVacant">0 beds available</small></div>
+<div class="stat"><label>Waiting for allocation</label><strong id="nWaiting">0</strong><small>Students awaiting a room</small></div>
+</div>
+<div class="layout">
+<div>
+<div class="panel">
+<div class="phead"><div><h2>Room occupancy</h2><small>Current usage across all hostel rooms</small></div><span class="pill" id="occupancyPill">0% occupied</span></div>
+<div class="bar"><span id="occupancyBar" style="width:0%"></span></div><div class="barlabels"><span id="occupancyLeft">0 beds occupied</span><span id="occupancyRight">0 total beds</span></div>
+</div>
+<div class="panel">
+<div class="phead"><div><h2>Room overview</h2><small>Capacity and current occupants</small></div><button class="secondary small" onclick="navigate('rooms')">View all rooms →</button></div>
+<div class="rooms" id="dashboardRooms"></div>
+</div>
+<div class="panel">
+<div class="phead"><div><h2>Recent students</h2><small>Latest registered student records</small></div><button class="secondary small" onclick="navigate('students')">View students →</button></div>
+<div class="tablewrap"><table><thead><tr><th>Student</th><th>Room</th><th>Status</th></tr></thead><tbody id="recentStudents"></tbody></table></div>
+</div>
+</div>
+<div>
+<div class="panel">
+<div class="phead"><div><h2>Quick actions</h2><small>Common hostel operations</small></div></div>
+<div class="quick">
+<button onclick="openStudent()"><span>＋</span>Add student</button>
+<button onclick="openRoom()"><span>▤</span>Add room</button>
+<button onclick="navigate('allocation')"><span>⇄</span>Allocate rooms</button>
+<button onclick="navigate('waiting')"><span>◷</span>Waiting list</button>
+</div>
+</div>
+<div class="panel">
+<div class="phead"><div><h2>Recent activity</h2><small>Latest system actions</small></div></div>
+<div id="recentActivity"></div>
+</div>
+<div class="panel">
+<div class="phead"><div><h2>Allocation summary</h2><small>Student placement overview</small></div></div>
+<div id="allocationSummary"></div>
+</div>
+</div>
+</div>
+</section>
+
+<section class="view" id="v-students">
+<div class="panel">
+<div class="phead"><div><h2>Student management</h2><small>Register, search, allocate and check out students</small></div><button onclick="openStudent()">＋ Add student</button></div>
+<div class="toolbar"><input id="studentSearch" placeholder="Search by name, ID, department or room..." oninput="renderStudents()"><select id="studentFilter" onchange="renderStudents()"><option value="all">All statuses</option><option>Allocated</option><option>Waiting</option><option>Unallocated</option></select></div>
+<div class="tablewrap"><table><thead><tr><th>Student</th><th>Department / Year</th><th>Priority</th><th>Room</th><th>Status</th><th>Actions</th></tr></thead><tbody id="studentsTable"></tbody></table></div>
+</div>
+</section>
+
+<section class="view" id="v-rooms">
+<div class="panel">
+<div class="phead"><div><h2>Room management</h2><small>Manage hostel blocks, room types and bed capacity</small></div><button onclick="openRoom()">＋ Add room</button></div>
+<div class="toolbar"><input id="roomSearch" placeholder="Search room number or block..." oninput="renderRooms()"><select id="roomTypeFilter" onchange="renderRooms()"><option value="all">All room types</option><option>Single</option><option>Double</option><option>Shared</option></select></div>
+<div class="rooms" id="allRooms"></div>
+</div>
+</section>
+
+<section class="view" id="v-allocation">
+<div class="layout">
+<div>
+<div class="panel">
+<div class="phead"><div><h2>Automatic allocation</h2><small>Allocate unassigned students according to priority</small></div><span class="pill">Max-Heap</span></div>
+<div class="notice">The system builds a priority queue using the selected strategy. Students are considered in order, then matched with available rooms using room type and compatibility preferences.</div>
+<div class="formgrid">
+<div class="field"><label for="strategy">Allocation strategy</label><select id="strategy"><option value="priority">Priority first</option><option value="year">Senior year first</option><option value="fifo">Registration order</option></select></div>
+<div class="field"><label for="pref">Room preference</label><select id="pref"><option value="preferred">Try preferred room type first</option><option value="any">Any available room</option></select></div>
+</div>
+<div class="formactions"><button onclick="autoAllocate()">Run automatic allocation</button><button class="secondary" onclick="processWaiting()">Process waiting list</button></div>
+<div id="allocResults" style="margin-top:16px"></div>
+</div>
+<div class="panel">
+<div class="phead"><div><h2>Manual allocation</h2><small>Allocate one student to a suitable available room</small></div></div>
+<div class="field"><label for="manualStudent">Student</label><select id="manualStudent"></select></div>
+<div class="formactions"><button onclick="manualAllocate()">Allocate selected student</button></div>
+</div>
+</div>
+<div>
+<div class="panel">
+<div class="phead"><div><h2>Transfer student</h2><small>Move an allocated student to another room</small></div></div>
+<div class="field"><label for="transferStudent">Allocated student</label><select id="transferStudent"></select></div>
+<div class="field" style="margin-top:12px"><label for="transferRoom">Destination room</label><select id="transferRoom"></select></div>
+<div class="formactions"><button onclick="transfer()">Transfer student</button></div>
+</div>
+<div class="panel">
+<div class="phead"><div><h2>Priority guide</h2><small>Priority levels used by the heap</small></div></div>
+<div id="priorityGuide"></div>
+</div>
+</div>
+</div>
+</section>
+
+<section class="view" id="v-waiting">
+<div class="panel">
+<div class="phead"><div><h2>Waiting list</h2><small>Students waiting for an available suitable room</small></div><button onclick="processWaiting()">Process waiting list</button></div>
+<div class="notice">When a bed becomes available, process this list to attempt allocation. Students with higher priority are considered first.</div>
+<div class="tablewrap"><table><thead><tr><th>Student</th><th>Department</th><th>Year</th><th>Priority</th><th>Room preference</th><th>Action</th></tr></thead><tbody id="waitingTable"></tbody></table></div>
+</div>
+</section>
+
+<section class="view" id="v-reports">
+<div class="stats">
+<div class="stat"><label>Total students</label><strong id="rStudents">0</strong><small>Student records</small></div>
+<div class="stat"><label>Rooms managed</label><strong id="rRooms">0</strong><small>Registered rooms</small></div>
+<div class="stat"><label>Occupancy rate</label><strong id="rOccupancy">0%</strong><small>Occupied beds / total beds</small></div>
+<div class="stat"><label>Available beds</label><strong id="rVacant">0</strong><small>Vacant capacity</small></div>
+</div>
+<div class="layout">
+<div class="panel">
+<div class="phead"><div><h2>Activity history</h2><small>Recent operations performed in this session</small></div><button class="secondary small" onclick="clearLog()">Clear history</button></div>
+<div id="historyList"></div>
+</div>
+<div>
+<div class="panel">
+<div class="phead"><div><h2>Data reports</h2><small>Download a copy of the current demo data</small></div></div>
+<p class="muted">Export records for review or demonstration. JSON includes rooms, students, waiting list and activity history. CSV contains student records.</p>
+<div class="formactions"><button onclick="exportJSON()">Export JSON</button><button class="secondary" onclick="exportCSV()">Export students CSV</button></div>
+</div>
+<div class="panel">
+<div class="phead"><div><h2>System summary</h2><small>Current hostel data</small></div></div>
+<div id="systemSummary"></div>
+<div class="formactions"><button class="secondary" onclick="undo()">↶ Undo last change</button><button class="danger" onclick="resetDemo()">Reset demo data</button></div>
+</div>
+</div>
+</div>
+</section>
+<div class="foot">SMART HOSTEL ROOM ALLOCATION SYSTEM · DATA STRUCTURES MINI PROJECT<br>Academic demo · Data stays in this browser</div>
+</main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modalback" id="studentModal">
+<div class="modal">
+<div class="modalhead"><h2>Register student</h2><button class="secondary small" onclick="closeModal('studentModal')">✕</button></div>
+<form id="studentForm">
+<div class="formgrid">
+<div class="field"><label for="sId">Student ID *</label><input id="sId" required maxlength="20" placeholder="e.g. STU110"></div>
+<div class="field"><label for="sName">Full name *</label><input id="sName" required maxlength="80" placeholder="Student name"></div>
+<div class="field"><label for="sDept">Department *</label><select id="sDept" required><option value="CSE">Computer Science</option><option value="ECE">Electronics</option><option value="EEE">Electrical</option><option value="ME">Mechanical</option><option value="CE">Civil</option><option value="Other">Other</option></select></div>
+<div class="field"><label for="sYear">Academic year *</label><select id="sYear" required><option value="1">Year 1</option><option value="2">Year 2</option><option value="3">Year 3</option><option value="4">Year 4</option></select></div>
+<div class="field"><label for="sPriority">Allocation priority *</label><select id="sPriority" required><option value="1">Level 1 — Standard</option><option value="2">Level 2 — Medium</option><option value="3" selected>Level 3 — High</option><option value="4">Level 4 — Very high</option><option value="5">Level 5 — Critical</option></select></div>
+<div class="field"><label for="sType">Room type preference</label><select id="sType"><option>Any</option><option>Single</option><option>Double</option><option>Shared</option></select></div>
+<div class="field"><label for="sSleep">Sleep schedule</label><select id="sSleep"><option>Any</option><option>Early</option><option>Late</option></select></div>
+<div class="field"><label for="sVibe">Roommate preference</label><select id="sVibe"><option>Any</option><option>Quiet</option><option>Social</option></select></div>
+</div>
+<div class="formactions"><button type="submit">Register student</button><button type="button" class="secondary" onclick="closeModal('studentModal')">Cancel</button></div>
+</form>
+</div>
+</div>
+
+<div class="modalback" id="roomModal">
+<div class="modal">
+<div class="modalhead"><h2>Add hostel room</h2><button class="secondary small" onclick="closeModal('roomModal')">✕</button></div>
+<form id="roomForm">
+<div class="formgrid">
+<div class="field"><label for="rId">Room number *</label><input id="rId" required maxlength="15" placeholder="e.g. A-105"></div>
+<div class="field"><label for="rBlock">Hostel block *</label><select id="rBlock"><option>Block A</option><option>Block B</option><option>Block C</option><option>Block D</option></select></div>
+<div class="field"><label for="rCap">Bed capacity *</label><select id="rCap"><option value="1">1 bed</option><option value="2" selected>2 beds</option><option value="3">3 beds</option><option value="4">4 beds</option><option value="5">5 beds</option><option value="6">6 beds</option></select></div>
+<div class="field"><label for="rType">Room type *</label><select id="rType"><option>Single</option><option>Double</option><option>Shared</option></select></div>
+</div>
+<div class="formactions"><button type="submit">Add room</button><button type="button" class="secondary" onclick="closeModal('roomModal')">Cancel</button></div>
+</form>
+</div>
+</div>
+
+<script>
+const STORAGE_KEY='smartHostelAllocation_v1';
+const $=id=>document.getElementById(id);
+const clone=x=>JSON.parse(JSON.stringify(x));
+let db;
+
+function seed(){
+return {
+next:20,
+students:[
+{id:'STU101',name:'Aarav Menon',dept:'CSE',year:3,priority:4,type:'Double',sleep:'Early',vibe:'Quiet',roomId:'A-101',status:'Allocated',created:1},
+{id:'STU102',name:'Diya Nair',dept:'ECE',year:2,priority:3,type:'Shared',sleep:'Late',vibe:'Social',roomId:'B-201',status:'Allocated',created:2},
+{id:'STU103',name:'Rohan Das',dept:'CSE',year:4,priority:5,type:'Double',sleep:'Early',vibe:'Quiet',roomId:'A-101',status:'Allocated',created:3},
+{id:'STU104',name:'Ananya Paul',dept:'ME',year:1,priority:2,type:'Single',sleep:'Late',vibe:'Any',roomId:null,status:'Waiting',created:4},
+{id:'STU105',name:'Ishan Thomas',dept:'CE',year:2,priority:3,type:'Any',sleep:'Early',vibe:'Social',roomId:'C-301',status:'Allocated',created:5},
+{id:'STU106',name:'Meera Joseph',dept:'CSE',year:1,priority:4,type:'Double',sleep:'Early',vibe:'Quiet',roomId:null,status:'Waiting',created:6},
+{id:'STU107',name:'Neha Kumar',dept:'ECE',year:3,priority:2,type:'Shared',sleep:'Late',vibe:'Social',roomId:'B-201',status:'Allocated',created:7}
+],
+rooms:[
+{id:'A-101',block:'Block A',capacity:2,type:'Double',occupants:['STU101','STU103']},
+{id:'A-102',block:'Block A',capacity:1,type:'Single',occupants:[]},
+{id:'A-103',block:'Block A',capacity:2,type:'Double',occupants:[]},
+{id:'B-201',block:'Block B',capacity:3,type:'Shared',occupants:['STU102','STU107']},
+{id:'B-202',block:'Block B',capacity:2,type:'Double',occupants:[]},
+{id:'C-301',block:'Block C',capacity:3,type:'Shared',occupants:['STU105']},
+{id:'C-302',block:'Block C',capacity:1,type:'Single',occupants:[]}
+],
+waiting:['STU104','STU106'],
+activity:[],
+undo:[]
+};
+}
+function load(){
+try{
+const raw=localStorage.getItem(STORAGE_KEY);
+if(!raw)return seed();
+const d=JSON.parse(raw);
+if(!Array.isArray(d.students)||!Array.isArray(d.rooms))return seed();
+d.undo=Array.isArray(d.undo)?d.undo:[];
+d.waiting=Array.isArray(d.waiting)?d.waiting:[];
+d.activity=Array.isArray(d.activity)?d.activity:[];
+return d;
+}catch(e){return seed()}
+}
+db=load();
+function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(db))}catch(e){}}
+function snap(){
+db.undo.push({rooms:clone(db.rooms),students:clone(db.students),waiting:clone(db.waiting),next:db.next});
+if(db.undo.length>20)db.undo.shift();
+}
+function log(message){
+db.activity.unshift({m:message,t:new Date().toLocaleString()});
+db.activity=db.activity.slice(0,100);
+}
+function toast(message){
+const el=$('toast');el.textContent=message;el.classList.add('show');
+clearTimeout(window.__toastTimer);
+window.__toastTimer=setTimeout(()=>el.classList.remove('show'),2800);
+}
+function esc(value){
+return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function student(id){return db.students.find(s=>s.id===id)}
+function room(id){return db.rooms.find(r=>r.id===id)}
+function free(r){return Math.max(0,r.capacity-r.occupants.length)}
+function initials(name){return String(name).split(/\s+/).map(x=>x[0]||'').slice(0,2).join('').toUpperCase()}
+function navigate(view){
+document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+$('v-'+view).classList.add('active');
+document.querySelectorAll('#nav button').forEach(el=>el.classList.toggle('active',el.dataset.view===view));
+const labels={
+dashboard:['Dashboard overview','A clearer view of occupancy, allocation and student housing.'],
+students:['Student management','Register and manage student records.'],
+rooms:['Room management','Manage hostel blocks, rooms and bed capacity.'],
+allocation:['Room allocation','Allocate students using priority and compatibility.'],
+waiting:['Waiting list','Review students waiting for a suitable room.'],
+reports:['History & reports','Review activity and export your data.']
+};
+$('title').textContent=labels[view][0];
+$('subtitle').textContent=labels[view][1];
+}
+$('nav').addEventListener('click',e=>{
+const b=e.target.closest('button[data-view]');
+if(b)navigate(b.dataset.view);
+});
+function renderDashboard(){
+const cap=db.rooms.reduce((a,r)=>a+r.capacity,0);
+const occ=db.rooms.reduce((a,r)=>a+r.occupants.length,0);
+const pct=cap?Math.round(occ/cap*100):0;
+$('nStudents').textContent=db.students.length;
+$('nBeds').textContent=cap;
+$('nRooms').textContent=`Across ${db.rooms.length} rooms`;
+$('nOccupied').textContent=occ;
+$('nVacant').textContent=`${cap-occ} beds available`;
+$('nWaiting').textContent=db.students.filter(s=>s.status==='Waiting').length;
+$('occupancyPill').textContent=pct+'% occupied';
+$('occupancyBar').style.width=pct+'%';
+$('occupancyLeft').textContent=occ+' beds occupied';
+$('occupancyRight').textContent=cap+' total beds';
+$('dashboardRooms').innerHTML=db.rooms.slice(0,6).map(roomCard).join('')||'<div class="empty">No rooms added yet.</div>';
+$('recentStudents').innerHTML=db.students.slice().sort((a,b)=>b.created-a.created).slice(0,5).map(s=>`<tr><td><div class="person"><div class="avatar">${esc(initials(s.name))}</div><div><b>${esc(s.name)}</b><small>${esc(s.id)}</small></div></div></td><td>${esc(s.roomId||'—')}</td><td><span class="status ${esc(s.status)}">${esc(s.status)}</span></td></tr>`).join('')||'<tr><td colspan="3" class="empty">No students registered.</td></tr>';
+$('recentActivity').innerHTML=db.activity.slice(0,5).map(activityHTML).join('')||'<div class="empty">No recent activity.</div>';
+const allocated=db.students.filter(s=>s.status==='Allocated').length;
+const waiting=db.students.filter(s=>s.status==='Waiting').length;
+const unallocated=db.students.filter(s=>s.status==='Unallocated').length;
+$('allocationSummary').innerHTML=[
+['Allocated',allocated,'var(--green)'],
+['Waiting',waiting,'var(--orange)'],
+['Unallocated',unallocated,'var(--red)']
+].map(([k,v,c])=>`<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:12px"><span class="muted">${k}</span><b style="color:${c}">${v}</b></div>`).join('');
+}
+function roomCard(r){
+const occupied=r.occupants.length;
+const pct=r.capacity?Math.round(occupied/r.capacity*100):0;
+return `<div class="room"><div class="roomtop"><div><div class="roomname">${esc(r.id)}</div><div class="roomtype">${esc(r.block)} · ${esc(r.type)}</div></div><span class="pill ${free(r)===0?'red':'green'}">${free(r)} free</span></div><div class="beds">${Array.from({length:r.capacity},(_,i)=>`<span class="bed ${i<occupied?'full':''}"></span>`).join('')}</div><div class="roomfoot"><span>${occupied}/${r.capacity} occupied</span><span>${pct}%</span></div><div class="meter"><span style="width:${pct}%"></span></div><div class="roombuttons"><button class="secondary small" onclick="roomDetails('${esc(r.id)}')">Details</button><button class="danger small" onclick="removeRoom('${esc(r.id)}')">Remove</button></div></div>`;
+}
+function roomDetails(id){
+const r=room(id);
+if(!r)return;
+const names=r.occupants.map(x=>student(x)?.name||x).join(', ')||'No occupants';
+toast(`${r.id}: ${names}`);
+}
+function renderStudents(){
+const q=($('studentSearch')?.value||'').toLowerCase();
+const f=$('studentFilter')?.value||'all';
+const arr=db.students.filter(s=>{
+const r=room(s.roomId);
+const text=[s.id,s.name,s.dept,s.roomId||'',r?.block||''].join(' ').toLowerCase();
+return text.includes(q)&&(f==='all'||s.status===f);
+}).sort((a,b)=>b.created-a.created);
+$('studentsTable').innerHTML=arr.map(s=>`<tr><td><div class="person"><div class="avatar">${esc(initials(s.name))}</div><div><b>${esc(s.name)}</b><small>${esc(s.id)}</small></div></div></td><td>${esc(s.dept)}<small style="display:block;color:var(--muted);margin-top:4px">Year ${s.year}</small></td><td><span class="pill ${s.priority>=4?'orange':''}">Level ${s.priority}</span></td><td>${esc(s.roomId||'—')}</td><td><span class="status ${esc(s.status)}">${esc(s.status)}</span></td><td><div style="display:flex;gap:5px;flex-wrap:wrap">${s.status!=='Allocated'?`<button class="small" onclick="allocateOne('${esc(s.id)}')">Allocate</button>`:''}<button class="secondary small" onclick="checkout('${esc(s.id)}')">Check out</button><button class="danger small" onclick="removeStudent('${esc(s.id)}')">Remove</button></div></td></tr>`).join('')||'<tr><td colspan="6" class="empty">No matching students found.</td></tr>';
+$('manualStudent').innerHTML=db.students.filter(s=>s.status!=='Allocated').map(s=>`<option value="${esc(s.id)}">${esc(s.name)} (${esc(s.id)}) · ${esc(s.status)}</option>`).join('')||'<option value="">No unallocated students</option>';
+}
+function renderRooms(){
+const q=($('roomSearch')?.value||'').toLowerCase();
+const f=$('roomTypeFilter')?.value||'all';
+const arr=db.rooms.filter(r=>(r.id+' '+r.block).toLowerCase().includes(q)&&(f==='all'||r.type===f));
+$('allRooms').innerHTML=arr.map(roomCard).join('')||'<div class="empty">No matching rooms found.</div>';
+}
+function renderWaiting(){
+const arr=db.students.filter(s=>s.status==='Waiting').sort((a,b)=>b.priority-a.priority||a.created-b.created);
+$('waitingTable').innerHTML=arr.map(s=>`<tr><td><div class="person"><div class="avatar">${esc(initials(s.name))}</div><div><b>${esc(s.name)}</b><small>${esc(s.id)}</small></div></div></td><td>${esc(s.dept)}</td><td>${s.year}</td><td><span class="pill orange">Level ${s.priority}</span></td><td>${esc(s.type)}</td><td><button class="small" onclick="allocateOne('${esc(s.id)}')">Try allocate</button></td></tr>`).join('')||'<tr><td colspan="6" class="empty">No students are currently waiting.</td></tr>';
+}
+function activityHTML(a){
+return `<div class="activity"><span class="dot"></span><div><b>${esc(a.m)}</b><small>${esc(a.t)}</small></div></div>`;
+}
+function renderReports(){
+const cap=db.rooms.reduce((a,r)=>a+r.capacity,0);
+const occ=db.rooms.reduce((a,r)=>a+r.occupants.length,0);
+$('rStudents').textContent=db.students.length;
+$('rRooms').textContent=db.rooms.length;
+$('rOccupancy').textContent=(cap?Math.round(occ/cap*100):0)+'%';
+$('rVacant').textContent=cap-occ;
+$('historyList').innerHTML=db.activity.map(activityHTML).join('')||'<div class="empty">No activity recorded.</div>';
+$('systemSummary').innerHTML=[
+['Total students',db.students.length],
+['Hostel rooms',db.rooms.length],
+['Total beds',cap],
+['Occupied beds',occ],
+['Vacant beds',cap-occ],
+['Occupancy rate',(cap?Math.round(occ/cap*100):0)+'%'],
+['Allocated',db.students.filter(s=>s.status==='Allocated').length],
+['Waiting',db.students.filter(s=>s.status==='Waiting').length]
+].map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:12px"><span class="muted">${k}</span><b>${v}</b></div>`).join('');
+}
+function fillTransfer(){
+const s=$('transferStudent'),r=$('transferRoom');
+s.innerHTML=db.students.filter(x=>x.status==='Allocated').map(x=>`<option value="${esc(x.id)}">${esc(x.name)} (${esc(x.id)})</option>`).join('')||'<option value="">No allocated students</option>';
+r.innerHTML=db.rooms.filter(x=>free(x)>0).map(x=>`<option value="${esc(x.id)}">${esc(x.id)} · ${free(x)} vacant · ${esc(x.type)}</option>`).join('')||'<option value="">No vacancies</option>';
+}
+function renderAllocation(){
+fillTransfer();
+$('priorityGuide').innerHTML=[['Level 5','Critical'],['Level 4','Very high'],['Level 3','High'],['Level 2','Medium'],['Level 1','Standard']].map(x=>`<div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line);font-size:12px"><span>${x[1]} priority</span><b style="color:var(--teal)">${x[0]}</b></div>`).join('');
+}
+function renderAll(){
+renderDashboard();renderStudents();renderRooms();renderWaiting();renderReports();renderAllocation();save();
+}
+function openStudent(){
+$('studentForm').reset();
+$('studentModal').classList.add('show');
+}
+function openRoom(){
+$('roomForm').reset();
+$('roomModal').classList.add('show');
+}
+function closeModal(id){$(id).classList.remove('show')}
+document.querySelectorAll('.modalback').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show')}));
+$('studentForm').onsubmit=e=>{
+e.preventDefault();
+let id=$('sId').value.trim(),name=$('sName').value.trim();
+if(db.students.some(s=>s.id.toLowerCase()===id.toLowerCase()))return toast('Student ID already exists.');
+snap();
+let s={id,name,dept:$('sDept').value,year:+$('sYear').value,priority:+$('sPriority').value,type:$('sType').value,sleep:$('sSleep').value,vibe:$('sVibe').value,roomId:null,status:'Unallocated',created:db.next++};
+db.students.push(s);
+log(`Registered student ${name} (${id})`);
+closeModal('studentModal');
+if(!tryAllocate(s)){s.status='Waiting';db.waiting.push(s.id);log(`${name} added to waiting list`)}
+renderAll();
+toast(s.status==='Allocated'?`Student allocated to ${s.roomId}.`:'No vacancy; student added to waiting list.');
+};
+$('roomForm').onsubmit=e=>{
+e.preventDefault();
+let id=$('rId').value.trim().toUpperCase();
+if(db.rooms.some(r=>r.id.toLowerCase()===id.toLowerCase()))return toast('Room number already exists.');
+snap();
+db.rooms.push({id,block:$('rBlock').value,capacity:+$('rCap').value,type:$('rType').value,occupants:[]});
+log(`Added room ${id}`);
+closeModal('roomModal');
+renderAll();
+toast('Room added.');
+};
+function compatibility(s,r){
+let peers=r.occupants.map(student).filter(Boolean),scores=[];
+if(s.type!=='Any')scores.push(s.type===r.type?1:0);
+if(peers.length&&s.sleep!=='Any')scores.push(peers.filter(p=>p.sleep===s.sleep).length/peers.length);
+if(peers.length&&s.vibe!=='Any')scores.push(peers.filter(p=>p.vibe===s.vibe).length/peers.length);
+return scores.length?Math.round(scores.reduce((a,b)=>a+b,0)/scores.length*100):100;
+}
+function tryAllocate(s){
+if(!s||s.status==='Allocated')return true;
+let a=db.rooms.filter(r=>free(r)>0),pref=$('pref')?.value||'preferred';
+if(pref==='preferred'&&s.type!=='Any'){
+let match=a.filter(r=>r.type===s.type);
+if(match.length)a=match;
+}
+if(!a.length)return false;
+a.sort((x,y)=>{
+let sx=compatibility(s,x)+(s.type===x.type?100:0)-x.occupants.length;
+let sy=compatibility(s,y)+(s.type===y.type?100:0)-y.occupants.length;
+return sy-sx;
+});
+let r=a[0];
+r.occupants.push(s.id);s.roomId=r.id;s.status='Allocated';
+db.waiting=db.waiting.filter(x=>x!==s.id);
+log(`Allocated ${s.name} to ${r.id} (compatibility ${compatibility(s,r)}%)`);
+return true;
+}
+class MaxHeap{
+constructor(compare){this.a=[];this.compare=compare}
+push(x){
+this.a.push(x);let i=this.a.length-1;
+while(i>0){let p=(i-1)>>1;if(this.compare(this.a[p],this.a[i])>=0)break;[this.a[p],this.a[i]]=[this.a[i],this.a[p]];i=p}
+}
+pop(){
+if(!this.a.length)return null;
+let out=this.a[0],last=this.a.pop();
+if(this.a.length){
+this.a[0]=last;let i=0;
+while(true){
+let l=2*i+1,r=l+1,b=i;
+if(l<this.a.length&&this.compare(this.a[l],this.a[b])>0)b=l;
+if(r<this.a.length&&this.compare(this.a[r],this.a[b])>0)b=r;
+if(b===i)break;
+[this.a[b],this.a[i]]=[this.a[i],this.a[b]];i=b;
+}
+}
+return out;
+}
+}
+function autoAllocate(){
+snap();
+let pending=db.students.filter(s=>s.status!=='Allocated'),strategy=$('strategy')?.value||'priority';
+let heap=new MaxHeap((a,b)=>strategy==='year'?(a.year-b.year||a.priority-b.priority):strategy==='fifo'?(b.created-a.created):(a.priority-b.priority||a.year-b.year));
+pending.forEach(s=>heap.push(s));
+let done=0,waiting=0,res=[];
+while(heap.a.length){
+let s=heap.pop();
+if(tryAllocate(s)){
+done++;
+res.push(`<div class="activity"><span class="dot"></span><div><b>${esc(s.name)} → ${esc(s.roomId)}</b><small>Priority ${s.priority} · ${esc(s.dept)} · Year ${s.year}</small></div></div>`);
+}else{
+s.status='Waiting';
+if(!db.waiting.includes(s.id))db.waiting.push(s.id);
+waiting++;
+}
+}
+log(`Automatic allocation completed: ${done} allocated, ${waiting} waiting`);
+$('allocResults').innerHTML=`<div class="notice"><b>Allocation complete:</b> ${done} allocated · ${waiting} remain waiting.</div>${res.join('')||'<div class="empty">No students needed allocation.</div>'}`;
+renderAll();
+toast(`Allocation complete: ${done} allocated.`);
+}
+function manualAllocate(){
+const id=$('manualStudent').value;
+if(!id)return toast('Choose a student first.');
+allocateOne(id);
+}
+function allocateOne(id){
+snap();
+let s=student(id);
+if(tryAllocate(s)){
+log(`Manually allocated ${s.name}`);
+renderAll();
+toast(`${s.name} allocated to ${s.roomId}.`);
+}else{
+if(s){s.status='Waiting';if(!db.waiting.includes(id))db.waiting.push(id)}
+renderAll();
+toast('No suitable room vacancy available.');
+}
+}
+function processWaiting(){
+snap();
+let a=db.waiting.map(student).filter(s=>s&&s.status==='Waiting').sort((x,y)=>y.priority-x.priority||x.created-y.created),n=0;
+for(let s of a)if(tryAllocate(s))n++;
+log(`Waiting list processed: ${n} allocated`);
+renderAll();
+toast(n?`${n} student(s) allocated.`:'No suitable vacancies available.');
+}
+function removeStudent(id){
+let s=student(id);
+if(!s||!confirm(`Remove ${s.name} from the system?`))return;
+snap();
+if(s.roomId&&room(s.roomId))room(s.roomId).occupants=room(s.roomId).occupants.filter(x=>x!==id);
+db.students=db.students.filter(x=>x.id!==id);
+db.waiting=db.waiting.filter(x=>x!==id);
+log(`Removed student ${s.name}`);
+renderAll();
+toast('Student removed.');
+}
+function checkout(id){
+let s=student(id);
+if(!s||!confirm(`Check out ${s.name}?`))return;
+snap();
+if(s.roomId&&room(s.roomId))room(s.roomId).occupants=room(s.roomId).occupants.filter(x=>x!==id);
+s.roomId=null;s.status='Unallocated';
+db.waiting=db.waiting.filter(x=>x!==id);
+log(`Checked out ${s.name}`);
+renderAll();
+toast('Check-out complete; bed is available.');
+}
+function removeRoom(id){
+let r=room(id);
+if(!r)return;
+if(r.occupants.length)return toast('Cannot remove an occupied room.');
+if(!confirm(`Remove room ${id}?`))return;
+snap();
+db.rooms=db.rooms.filter(x=>x.id!==id);
+log(`Removed room ${id}`);
+renderAll();
+toast('Room removed.');
+}
+function transfer(){
+let id=$('transferStudent').value,dest=$('transferRoom').value,s=student(id),r=room(dest);
+if(!s||!r)return toast('Choose a student and destination.');
+if(s.roomId===dest)return toast('Student is already in this room.');
+if(free(r)<=0)return toast('Destination room is full.');
+snap();
+let old=s.roomId;
+if(old&&room(old))room(old).occupants=room(old).occupants.filter(x=>x!==id);
+r.occupants.push(id);s.roomId=dest;s.status='Allocated';
+db.waiting=db.waiting.filter(x=>x!==id);
+log(`Transferred ${s.name} from ${old||'unallocated'} to ${dest}`);
+renderAll();
+toast(`Transfer complete: ${dest}`);
+}
+function undo(){
+let x=db.undo.pop();
+if(!x)return toast('No operation to undo.');
+db.rooms=x.rooms;db.students=x.students;db.waiting=x.waiting;db.next=x.next;
+log('Undo: restored previous data snapshot');
+renderAll();
+toast('Previous change restored.');
+}
+function clearLog(){
+if(!confirm('Clear activity log?'))return;
+db.activity=[];save();renderAll();toast('Activity log cleared.');
+}
+function resetDemo(){
+if(!confirm('Reset all data to original demo records?'))return;
+db=seed();db.activity=[];db.undo=[];renderAll();toast('Demo data reset.');
+}
+function download(blob,name){
+let a=document.createElement('a'),url=URL.createObjectURL(blob);
+a.href=url;a.download=name;a.click();URL.revokeObjectURL(url);
+}
+function exportJSON(){
+download(new Blob([JSON.stringify({exportedAt:new Date().toISOString(),rooms:db.rooms,students:db.students,waiting:db.waiting,activity:db.activity},null,2)],{type:'application/json'}),'smart-hostel-data.json');
+toast('JSON exported.');
+}
+function exportCSV(){
+let cols=['id','name','dept','year','priority','type','sleep','vibe','roomId','status'];
+let csv=[cols.join(','),...db.students.map(s=>cols.map(k=>`"${String(s[k]??'').replace(/"/g,'""')}"`).join(','))].join('\n');
+download(new Blob([csv],{type:'text/csv;charset=utf-8'}),'smart-hostel-students.csv');
+toast('CSV downloaded.');
+}
+function init(){
+if(!db.activity.length)db.activity=[
+{m:'Smart Hostel demo initialized',t:new Date().toLocaleString()},
+{m:'Sample rooms and students loaded',t:new Date().toLocaleString()}
+];
+renderAll();
+}
+init();
+</script>
+</body>
+</html>
